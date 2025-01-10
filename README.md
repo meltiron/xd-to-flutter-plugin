@@ -1,225 +1,121 @@
-# XD to Flutter Plugin v4.0.0
-
-## READ THIS FIRST
-Thank you for helping to test this plugin! Our goal is to release the best plugin we possibly can, and your feedback is a huge part of that.
-
-Before you get started, please read through the rest of this document, especially "Using This Plugin".
+# adobe_xd
+Generate code for building apps with Flutter based on your designs in Adobe XD with the [XD to Flutter](https://adobe.com/go/xd_to_flutter) plugin. This package contains helper widgets used by the plugin.
 
 
-### Issues & Feedback
-If you encounter a bug, have a feature request, or would like to ask a question, please use the [GitHub repo](https://github.com/AdobeXD/xd-to-flutter-plugin). Before submitting a new issue, please check the known issues below, and search on GitHub to ensure it hasn't already been reported - the less time we spend filtering duplicate posts, the more time we have to actually improve things.
+## Pin
+The `Pinned` widget uses horizontal and vertical `Pin` instances (`hPin` / `vPin`) to specify a highly flexible layout based on responsive resize model in Adobe XD, but can be used fully independently of the tool and the other classes in this package.
 
-When you file a bug, please provide as much info as possible to help us to reproduce it. If possible, include a link to a `.xd` file that isolates the problem. There may be relevant information in the Developer Console accessible from the Plugin > Development menu.
+The size and position of a child within its parent can be defined entirely by the position of its starting (top or left) and ending (bottom or right) edges. The `Pin` class provides a number of ways to specify these positions along an axis.
+
+You can specify an absolute pixel position for an edge relative to its parent. For example, this would draw the child with a 10 pixel gap on each side.
+
+``` dart
+Pin(start: 10.0, end: 10.0)
+```
+
+You can specify a relative (fractional) position instead. Assuming the horizontal axis, the following would draw the child with the left edge at 20% of the width of its parent, and its right edge at 90% of the width of its parent (ie. 10% in from the right):
+
+``` dart
+Pin(startFraction: 0.2, endFraction: 0.1)
+```
+
+You can mix these approaches:
+
+``` dart
+Pin(start: 25.0, endFraction: 0.6)
+```
+
+Or, specify one edge, and set a fixed size in pixels for the child:
+
+``` dart
+Pin(start: 50.0, size: 100.0)
+Pin(size: 80.0, endFraction: 0.2)
+```
+
+Lastly, you can specify a fixed size along with a middle position. This places the child's center relative to the available space after accounting for the size. For example, the following would center the child with a size of 50 pixels:
+
+``` dart
+Pin(middle: 0.5, size: 50.0)
+```
+
+This example would place the right edge (assuming horizontal) of the child at the right edge of the available space – it would _not_ place the middle of the child at the right edge of its parent.
+
+``` dart
+Pin(middle: 1.0, size: 50.0)
+```
+
+As a note: an empty pin defaults to filling the full available area, which is equivalent to:
+
+``` dart
+Pin(start: 0.0, end: 0.0)
+```
+
+
+## Pinned
+The `Pinned` widget implements the responsive resize model in Adobe XD. With it, you can pin the edges of the child within the available space, pin its center within the space, and/or give it a fixed size.
+
+The `Pinned.fromPins` constructor accepts a horizontal and vertical pin, as well as a child widget:
+
+``` dart
+Pinned.fromPins(
+	Pin(start: 10.0, endFraction: 0.75), // horizontal
+	Pin(middle: 0.5, size: 50.0), // vertical
+	child: Text("Hello!"),
+)
+```
+
+The default `Pinned` constructor accepts semantic parameters that map to the values of the horizontal and vertical pins. For example, `right` becomes `hPin.end` and `height` becomes `vPin.size`. This example is equivalent to the `Pinned.fromPins` example above:
+
+``` dart
+Pinned(
+	left: 10.0,
+	rightFraction: 0.75,
+	verticalMiddle: 0.5,
+	height: 50.0,
+	child: Text("Hello!"),
+)
+```
+
+The `Pinned.fromSize` constructor calculates the pin positions from a nominal parent size and child boundaries, with parameters that indicate whether that edge should be pinned to an absolute position – it defaults to a fractional position otherwise.
+
+This constructor directly mirrors the UI in Adobe XD, and can be used to assemble a pinned layout by examining a pre-existing design. XD to Flutter used the `Pinned.fromSize` constructor up to v2.0.0, when it switched to `Pinned.fromPins` to allow for more condensed and understandable code.
+
+Once again, this example results in the same layout as those above, but calculates it from a "reference" size and position:
+
+``` dart
+Pinned.fromSize(
+	size: Size(width: 100.0, height: 100.0), // nominal parent size
+	bounds: Rect.fromLTWH(10.0, 25.0, 65.0, 50.0), // nominal child bounds w/in parent
+	pinLeft: true, // use absolute pixel position on left
+	// no pinRight specified, default to relative position on right
+	fixedHeight: true, // use fixed height & middle because no top or bottom are specified
+	child: Text("Hello!"),
+)
+```
+
+
+## BlendMask
+The `BlendMask` widget applies a blend mode to its child.
+
+``` dart
+BlendMask(
+	blendMode: BlendMode.overlay,
+	child: Text("Hello!"),
+)
+```
+
+
+## GradientXDTransform
+Attempts to match Adobe XD gradient transformations within Flutter. Not very useful outside this context.
+
+
+## PageLink
+Enables prototype interactions & navigation exported from Adobe XD. Not very useful outside this context.
 
 
 ### Contributing
-Contributions are welcomed! Read the [Contributing Guide](./.github/CONTRIBUTING.md) for more information.
+Contributions are welcomed! Read the [Contributing Guide](../.github/CONTRIBUTING.md) for more information.
 
 
 ### Licensing
 This project is licensed under the simplified BSD License. See [LICENSE](LICENSE) for more information.
-
-
-# Installation & Setup
-In the Adobe XD menubar, go to Plugins > Discover Plugins, then search for and install the "Flutter" plugin. It will now show up in your plugins sidebar in the bottom left of XD. If you don't see the plugin listed, make sure you have the most recent version of Adobe XD installed, and try again.
-
-If you haven't already, install VS Code, and the Flutter / Dart extensions for it:
-
-https://flutter.dev/docs/get-started/editor?tab=vscode
-
-If you've never worked with Flutter before, it may be worth creating a starter app to gain some familiarity:
-
-https://flutter.dev/docs/get-started/codelab
-
-
-## Hot Reload
-Hot reload will allow you to see changes you make reflected on a device or simulator immediately each time you export from XD.
-
-To enable it, open the settings for the Dart extension in VS Code, and turn on `Preview Hot Reload On Save Watcher`. This will automatically hot reload your Flutter app whenever an external application (such as Adobe XD) saves changes to a `.dart` file in your project.
-
-
-## Flutter Dependencies
-Certain features have dependencies on custom widgets that are defined in the [adobe_xd](https://pub.dev/packages/adobe_xd) package on pubdev. In your Flutter project, add it as a dependency in your `pubspec.yaml` similar to:
-
-	// in pubspec.yaml
-	dependencies:
-	  adobe_xd: ^2.0.0
-
-
-## Null Safety
-You can enable "Export Null Safe Code" in the plugin's project settings. If you do so, you must use v2.0.0 or higher of the `adobe_xd` package and at least v2.1.2 of the SDK. Learn more about null safety on the [flutter.dev](https://flutter.dev/docs/null-safety) site.
-
-	// in pubspec.yaml
-	environment:
-	  sdk: '>=2.12.0 <3.0.0'
-
-	dependencies:
-	  adobe_xd: ^2.0.0
-
-
-## Normalize Names
-When this setting is enabled the plugin will attempt to normalize the names of classes, files, and other entities to match Dart standards.
-
-Note that XD files that have previously been opened with the plugin will have this setting off by default. New files will default to on.
-
-For example, an artboard named "my view" would generate a class named `MyView` written to a file named `my_view.dart`. Note that you can still manually set names that don't adhere to these standards.
-
-
-## Example
-There is a simple example in the `adobe_xd/example/` folder.
-
-
-# Using This plugin
-This plugin is intended to generate assets for use in an existing Flutter project.
-There are two primary ways you can work with it:
-
-
-## Copy and paste
-If you select any item in XD (except an Artboard or Component), you can click the "Copy Selected" button in the plugin panel to copy Dart code to your clipboard. You can then paste it into your project directly.
-
-
-## Export widgets
-Artboards and Components can be exported as Flutter widgets that can be used in your project.
-
-Select an artboard or component and click the "Export Widget" button. If you haven't already done so, you will be prompted to select your Flutter project's directory. The exported widget will be written to a dart file in the directory specified by the Code Path setting (defaults to "lib"). You can now instantiate and use that widget in your Flutter project.
-
-Use the "Export All Widgets" button to export all artboards and components in the file that do not have "Include In Export All Widgets" unchecked.
-
-
-## Exporting Images
-In order to optimize export, images are not exported with widgets. Only images with a name assigned in the plugin panel can be exported. Select an image and click "Export Image", or use the "Export All Images" button to export all images with a name to the Image Path.
-
-
-# Notes:
-
-## Unsupported Features:
-- component states (not exposed by API as of XD v42)
-- stroke joins, dashed strokes, stroke position on Rectangles and Ellipses. (Flutter decoration limitation)
-- shadow, image and angular gradient fills, stroke position on shapes (Flutter SVG limitation)
-- super/subscript, text transformation, paragraph spacing, stroked text (Flutter text limitation)
-- object blur, blur brightness (Flutter limitation)
-- panning scroll groups (horizontal & vertical are supported)
-- masks
-- prototype triggers other than `tap`
-- prototype actions other than `go to artboard` and `go back`
-- gradient backgrounds on artboards
-
-## Known Issues:
- - the panel can "interrupt" some actions, such as drawing paths with the pen tool or editing shapes (XD)
- - images that have been flipped (horizontally or vertically) may be exported incorrectly (XD)
- - images in Repeat Grids may scale improperly (XD)
- - color & character style assets are currently not used in the exported code (XD - see "Assets Export" below)
- - issues with text scrolling for statically positioned text fields (Flutter)
- - issues with tap interactions (prototype & tap callback) with statically positioned elements (Flutter)
- - objects that exceed the width of the display region can cause unexpected results (Flutter)
- - radial gradients don't always map 100% accurately in shapes
-
-## Shapes vs Rectangles & Ellipses
-Rectangles & Ellipses are exported as Flutter Container primitives, and do not support some stroke options. Other vector shapes are exported as SVG and rendered to a canvas via the `flutter_svg` package, which prevents support for shadows or image fills.
-
-
-## Combine Shapes
-Enabling the `Combine Shapes` option on a Group will aggressively combine any shapes, including rectangles & ellipses, and shapes in sub groups. This is useful for reducing a complex vector drawing into a single SVG string. For best results, disable responsive resize on the group and any subgroups.
-
-When not enabled, vector shapes (other than rectangles & ellipses) in adjacent layers within non-responsive groups will still be combined.
-
-
-## Components
-The panel will display a notice when selecting components, or children of components that are not the "master" component. This is to work around limitations with accessing and modifying master components. Press Cmd/Ctrl-Shift-K with a component selected to locate the master.
-
-
-## Multi-select
-The panel will display a notice when selecting multiple elements. We would like to support multi-select fully in a future release.
-
-
-## Text
-Text rendering is generally similar, but not identical between Flutter and XD. Expect to see minor differences in positioning and rendering.
-
-Line height is a multiplier in Flutter, and is calculated per line based on the largest text in the line. In XD it is a fixed value for all lines in a field. This may result in significant differences when displaying multiline text having multiple text sizes.
-
-Text lines tend to render slightly longer in Flutter, which can lead to character or words wrapping unexpectedly (ex. the last character in a label might not display). The plugin automatically increases the width of auto-sized text in static layouts to minimize this issue, but in responsive layouts it prioritizes maintaining the exact layout. This can be addressed by using text elements set to "fixed size" in XD, and adding a few extra pixels of width to accommodate Flutter rendering differences.
-
-
-## Fonts
-The plugin currently relies on users to manually assign the names of the fonts that will be used in Flutter, and set up those fonts as appropriate.
-
-It will generate warnings on export if any fonts are not defined in the `pubspec.yaml` file for the project.
-
-
-## Assets Export
-Color & character style assets (ie. from the XD Assets panel) are optionally exported as a class of static properties which can be used in your application. Only assets that have been given a name are included.
-
-Currently these assets are not used in the exported widgets due to limitations in how Adobe XD implements assets. Current assets simply associate a name with a value, which means that any use of that value in the design file gets associated with the the name, often incorrectly.
-
-
-## Images
-An `Image Export Name` must be provided to export an image. If you provide the same name for different images, they will be assumed to be identical.
-
-To speed up export, the plugin currently relies on the user to export images when appropriate.
-
-
-## Responsive Layout
-The plugin supports outputting XD's "Responsive Resize" layout. Where possible, it will translate these into common Flutter layout Widgets, such as `Center`, `Padding`, and `Align`. It will fall back to using the custom `Pinned` layout widget included in the `adobe_xd` package as appropriate.
-
-
-## Resolution Aware Images
-If the `Resolution Aware Images` setting is enabled, the plugin will find the largest instance of that image in the file (based on the display size), and use its dimensions (adjusted for aspect ratio) as the x1 image size. If the original image source is large enough, it will export x2 and x3 versions.
-
-If it is disabled, the plugin exports all images at their natural size (the size of the original asset).
-
-
-## Opacity
-For optimization reasons we currently multiply opacity against leaf node colors / fills. This means that the output does not pre-composite elements like groups before applying opacity (opacity is applied to each child of the group individually). The option to enable pre-compositing could be added in a future release.
-
-
-## Blend Modes
-Blend modes are currently exported as a custom BlendMask widget which composites its child to the scene with the specified blend mode and opacity. This is enabled on all widgets whose blend mode is not `pass-through`. Note that using blend modes may negatively impact your application's performance.
-
-
-## Visibility
-The plugin currently ignores any hidden elements (ex. a hidden Component will not be exported in 'Export All Widgets').
-
-
-## Parameters
-Parameters are named values that are exposed on the containing widget as a constructor parameter. This allows you to have multiple instances of the same widget showing different values (text, colors, images, etc). Parameters on an element are assigned to the nearest widget ancestor (Artboard or Component). 
-
-**Example 1:** If a named "color" parameter is added to a Text field inside a "button" Component on an Artboard, then that parameter would be exposed on the exported button widget, but not on the artboard widget.
-
-**Example 2:** If a tap callback was added to the button Component directly, the nearest widget ancestor would be the button itself, and it would be added there.
-
-
-## Tap Callbacks
-Similar to parameters, tap callbacks provide a mechanism to add functionality to a widget without modifying its exported code. A tap callback is effectively a parameter to which a callback method can be assigned, that will be called when a user clicks or taps that element. Tap callbacks follow the same rules as parameters.
-
-For example, adding a tap callback named `onTapMyGroup` to a Group in an Artboard, would allow you to assign a callback handler to `onTapMyGroup` in the Artboard widget's constructor, which would be called when the user taps that group in the running app.
-
-
-## Group Export Settings
-By default Groups are exported as inline code, but this can be changed to generate better organized code, or expose hooks for manipulating exported widgets without having to edit the exported code.
-
-### Export as build method
-This will encapsulate the build code for the group into a named method on the containing widget. This can help reduce excessive nesting, improve code organization, and provide hooks for subclasses to override or extend.
-
-### Replace with builder param
-This adds a builder parameter to the containing widget, and inserts it in place of the Group. This allows the exported widget to have completely arbitrary content injected at runtime.
-
-### Replace with custom code
-The specified code will be exported in the Group's place, providing a mechanism to include arbitrary code in the output. It is generally recommended to favor using a builder param whenever possible to avoid large amounts of code within your design files.
-
-There are two special "tags" that can be used in your custom code to inject the Group's generated code, or a list of its children. This is currently an experimental feature and may be changed or removed entirely in the future. **Test, and provide feedback, but use at your own risk!**
-
-- `<THIS{'decorators':false}>` - injects the full generated code for this group, optionally omitting decorators.
-- `<CHILDREN{'layout':'size|none'}>` - injects a list of the Group's children.
-
-Tag parameters (ie. in `{...}`) are in JSON format and can be omitted (ex. `<THIS>`).
-
-
-## Repeat Grid
-On export, an item "template" is generated that is used to render each of the children of the grid. In order to support more extensive customization of individual grid elements, any components in the template are flattened into it.
-
-Export for repeat grid does not support partial columns, since this is a rare use case, and causes significant challenges for responsiveness. This may be revisited in the future.
-
-To make items in a grid responsive, group everything in the item, and enable "responsive resize" for the group. This is an experimental feature and may have unexpected results in some cases.
-
-### Data Parameters
-A data [parameter](#Parameters) allows the grid's content to be set in the containing widget's constructor. Note that the default value for a data parameter is an empty list (ie. the exported grid will be empty by default).
