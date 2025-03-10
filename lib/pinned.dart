@@ -185,7 +185,7 @@ class Pin {
 
   /// Compares two Pins for equality.
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return other is Pin &&
         other.start == start &&
         other.startFraction == startFraction &&
